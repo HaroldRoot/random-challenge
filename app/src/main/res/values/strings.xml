@@ -2,4 +2,10 @@
     <string name="app_name">Random Challenge</string>
     <string name="title_cn">随机挑战</string>
     <string name="title_en">Random Challenge</string>
+    <string name="min_value">最小值</string>
+    <string name="max_value">最大值</string>
+    <string name="generation_count">生成个数</string>
+    <string name="advanced_option">高级选项</string>
+    <string name="generate">生成</string>
+    <string name="result">%s</string>
 </resources>
