@@ -72,6 +72,11 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
     var generationCountInput by remember { mutableStateOf("1") }
     val generationCount = generationCountInput.toIntOrNull() ?: 1
 
+    val isValidMinValue = isValidInteger(minValueInput)
+    val isValidMaxValue = isValidInteger(maxValueInput)
+    val isValidGenerationCount = isValidInteger(generationCountInput)
+    val allInputsValid = isValidMinValue && isValidMaxValue && isValidGenerationCount
+
     var advanced by remember { mutableStateOf(false) }
 
     var generationResult by remember { mutableStateOf("") }
@@ -86,27 +91,16 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
     ) {
         AppTitle()
         Spacer(modifier = Modifier.height(16.dp))
-/*        if (advanced) {
-            EditNumberField(
-                label = R.string.min_value,
-                value = minValueInput,
-                onValueChange = { minValueInput = it },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                )
-            )
-        }*/
         EditNumberField(
             label = R.string.max_value,
             value = maxValueInput,
             onValueChange = { maxValueInput = it },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Next
+                imeAction = when (advanced) {
+                    true -> ImeAction.Next
+                    false -> ImeAction.Done
+                }
             ),
             keyboardActions = KeyboardActions(
                 onNext = { focusManager.moveFocus(FocusDirection.Down) }
@@ -145,7 +139,10 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
         }
         AdvancedOptionRow(advanced = advanced, onAdvancedChange = { advanced = it })
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { generationResult = generate(minValue, maxValue, generationCount) }) {
+        Button(
+            onClick = { generationResult = generate(minValue, maxValue, generationCount, allInputsValid) },
+            enabled = allInputsValid && minValue <= maxValue && generationCount > 0 // 根据输入是否有效来决定按钮是否可用
+        ) {
             Text(stringResource(id = R.string.generate))
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -201,8 +198,7 @@ fun EditNumberField(
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
         singleLine = true,
-        modifier = modifier,
-
+        modifier = modifier
     )
 }
 
@@ -233,9 +229,15 @@ fun AdvancedOptionRow(
 private fun generate(
     minValue: Int,
     maxValue: Int,
-    generationCount: Int
+    generationCount: Int,
+    allInputsValid: Boolean
 ): String {
     if (maxValue == 0) return ""
+
+    if (!allInputsValid || minValue > maxValue || generationCount <= 0) {
+        return "请检查输入错误！"
+    }
+
     val random = Random(System.currentTimeMillis())
 
     // 生成指定个数的随机数，并将其转换为字符串
@@ -245,11 +247,17 @@ private fun generate(
     return "随机结果：" + numbers.joinToString(", ")
 }
 
+// 可以使用正则表达式来验证输入是否为整数
+// 可以编写一个辅助函数来检查输入是否为整数
+private fun isValidInteger(input: String): Boolean {
+    val regex = Regex("-?\\d+")
+    return regex.matches(input)
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun GreetingPreview() {
     RandomChallengeTheme {
-        RandomChallengeApp(
-        )
+        RandomChallengeApp()
     }
 }
