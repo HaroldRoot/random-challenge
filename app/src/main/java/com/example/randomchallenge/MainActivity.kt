@@ -79,6 +79,8 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
 
     var advanced by remember { mutableStateOf(false) }
 
+    var nonRepetitive by remember { mutableStateOf(false) }
+
     var generationResult by remember { mutableStateOf("") }
 
     val focusManager = LocalFocusManager.current
@@ -138,10 +140,22 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
             }
         }
         AdvancedOptionRow(advanced = advanced, onAdvancedChange = { advanced = it })
+        NonRepetitiveOptionRow(
+            nonRepetitive = nonRepetitive,
+            onNonRepetitiveChange = { nonRepetitive = it })
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = { generationResult = generate(minValue, maxValue, generationCount, allInputsValid) },
-            enabled = allInputsValid && minValue <= maxValue && generationCount > 0 // 根据输入是否有效来决定按钮是否可用
+            onClick = {
+                generationResult =
+                    generate(minValue, maxValue, generationCount, allInputsValid, nonRepetitive)
+            },
+            enabled = generationButtonEnabled(
+                minValue,
+                maxValue,
+                generationCount,
+                allInputsValid,
+                nonRepetitive
+            )
         ) {
             Text(stringResource(id = R.string.generate))
         }
@@ -226,11 +240,36 @@ fun AdvancedOptionRow(
     }
 }
 
+@Composable
+fun NonRepetitiveOptionRow(
+    nonRepetitive: Boolean,
+    onNonRepetitiveChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .size(48.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = stringResource(id = R.string.non_repetitive))
+        Switch(
+            checked = nonRepetitive,
+            onCheckedChange = onNonRepetitiveChange,
+            modifier = modifier
+                .fillMaxWidth()
+                .wrapContentWidth(Alignment.End),
+            colors = SwitchDefaults.colors(uncheckedThumbColor = Color.DarkGray)
+        )
+    }
+}
+
 private fun generate(
     minValue: Int,
     maxValue: Int,
     generationCount: Int,
-    allInputsValid: Boolean
+    allInputsValid: Boolean,
+    nonRepetitive: Boolean // 添加一个参数，用于接收用户是否选择了不重复选项的可变状态变量
 ): String {
     if (maxValue == 0) return ""
 
@@ -240,15 +279,41 @@ private fun generate(
 
     val random = Random(System.currentTimeMillis())
 
-    // 生成指定个数的随机数，并将其转换为字符串
-    val numbers = List(generationCount) { random.nextInt(minValue, maxValue + 1).toString() }
+    // 使用一个 MutableList 来存储生成的随机数
+    val numbers = mutableListOf<String>()
 
-    // 将数字列表用逗号和空格连接起来，并返回结果
+    // 生成指定个数的随机数，并将其转换为字符串
+    repeat(generationCount) {
+        var number: Int // 定义一个变量，用于存储生成的随机数
+        do {
+            // 生成一个随机数
+            number = random.nextInt(minValue, maxValue + 1)
+        } while (nonRepetitive && numbers.contains(number.toString())) // 如果用户选择了不重复选项，就检查生成的随机数是否已经在 MutableList 中存在，如果存在，就重新生成一个随机数
+        // 将生成的随机数转换为字符串，并添加到 MutableList 中
+        numbers.add(number.toString())
+    }
+
+    // 将 MutableList 用逗号和空格连接起来，并返回结果
     return "随机结果：" + numbers.joinToString(", ")
 }
 
-// 可以使用正则表达式来验证输入是否为整数
-// 可以编写一个辅助函数来检查输入是否为整数
+private fun generationButtonEnabled(
+    minValue: Int,
+    maxValue: Int,
+    generationCount: Int,
+    allInputsValid: Boolean,
+    nonRepetitive: Boolean
+): Boolean {
+    if (allInputsValid && minValue <= maxValue && generationCount > 0) {
+        if (nonRepetitive && generationCount > (maxValue - minValue + 1)) {
+            return false
+        }
+        return true
+    }
+    return false
+}
+
+// 使用正则表达式，验证输入是否为整数
 private fun isValidInteger(input: String): Boolean {
     val regex = Regex("-?\\d+")
     return regex.matches(input)

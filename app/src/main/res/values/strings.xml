@@ -6,6 +6,7 @@
     <string name="max_value">最大值</string>
     <string name="generation_count">生成个数</string>
     <string name="advanced_option">高级选项</string>
+    <string name="non_repetitive">不重复</string>
     <string name="generate">生成</string>
     <string name="result">%s</string>
     <string name="check_error">请检查输入错误！</string>
