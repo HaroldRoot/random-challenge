@@ -14,8 +14,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -87,7 +90,8 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
 
     Column(
         modifier = modifier
-            .padding(32.dp),
+            .padding(32.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -160,13 +164,15 @@ fun RandomChallengeApp(modifier: Modifier = Modifier) {
             Text(stringResource(id = R.string.generate))
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = R.string.result, generationResult),
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
+        SelectionContainer {
+            Text(
+                text = stringResource(id = R.string.result, generationResult),
+                style = MaterialTheme.typography.displaySmall,
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
 
